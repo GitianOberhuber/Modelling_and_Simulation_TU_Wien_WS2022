@@ -14,5 +14,9 @@ if __name__ == '__main__':
         boid = Boid(pos, velocity)
         boidContainer.add(boid)
 
+    #while(True):
+        #boidContainer.step()
+        #visualize
+
 
 
