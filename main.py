@@ -17,7 +17,7 @@ def get_vis_data(boidContainer, N):
 if __name__ == '__main__':
     N = 500
     boidContainerList = BoidContainerList()
-    boidContainerOctree = BoidContainerOctree()
+    # boidContainerOctree = BoidContainerOctree()
     # Set static values of the boids like this: Boid.l1 = value (set to values from Ex. description per default)
 
     for i in range(N):
@@ -33,8 +33,9 @@ if __name__ == '__main__':
         """
         boid = Boid(pos, velocity)
         boidContainerList.add(boid)
-        boidContainerOctree.add(boid)
-
+        #boidContainerOctree.add(boid)
+    """
+    # timings
     start = time.time()
     for i in range(10):
         boidContainerList.step()
@@ -46,11 +47,11 @@ if __name__ == '__main__':
         boidContainerOctree.step()
     end = time.time()
     print("octree: "  + str(end - start))
-
+    """
 
 
     # Set the animation framework and starting frame
-    pos, vel = get_vis_data(boidContainer, N)
+    pos, vel = get_vis_data(boidContainerList, N)
     fig = mlab.figure(size=(1600,1600))
     s = mlab.quiver3d(pos[0,:], pos[1,:], pos[2,:], vel[0,:], vel[1,:], vel[2,:],line_width=4.0,scale_factor = 2, scale_mode = 'vector', \
                       colormap='coolwarm',mode='2darrow',figure=fig, vmin=0, vmax=0.03)
@@ -62,9 +63,9 @@ if __name__ == '__main__':
     @mlab.animate(delay = delayer)
     def animate_loop():
         for it in range(its):
-            boidContainer.step()
+            boidContainerList.step()
             print("Step nr:",it+1)      # Debugging purpose
-            pos, vel = get_vis_data(boidContainer, N)
+            pos, vel = get_vis_data(boidContainerList, N)
             ms.reset(x=pos[0,:], y=pos[1,:], z=pos[2,:], u=vel[0,:], v=vel[1,:], w=vel[2,:])    # Reset data, avoids redrawing canvas
             yield
     animate_loop()
