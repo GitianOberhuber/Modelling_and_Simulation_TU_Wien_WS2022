@@ -1,7 +1,9 @@
 import numpy as np
 from mayavi import mlab
 from boidContainerList import BoidContainerList
+from boidContainerOctree import BoidContainerOctree
 from boid import Boid
+import time
 
 
 def get_vis_data(boidContainer, N):
@@ -14,7 +16,8 @@ def get_vis_data(boidContainer, N):
         
 if __name__ == '__main__':
     N = 500
-    boidContainer = BoidContainerList()
+    boidContainerList = BoidContainerList()
+    boidContainerOctree = BoidContainerOctree()
     # Set static values of the boids like this: Boid.l1 = value (set to values from Ex. description per default)
 
     for i in range(N):
@@ -29,7 +32,21 @@ if __name__ == '__main__':
             velocity = np.array([0,0,0.001])
         """
         boid = Boid(pos, velocity)
-        boidContainer.add(boid)
+        boidContainerList.add(boid)
+        boidContainerOctree.add(boid)
+
+    start = time.time()
+    for i in range(10):
+        boidContainerList.step()
+    end = time.time()
+    print("list: "  + str(end - start))
+
+    start = time.time()
+    for i in range(10):
+        boidContainerOctree.step()
+    end = time.time()
+    print("octree: "  + str(end - start))
+
 
 
     # Set the animation framework and starting frame
