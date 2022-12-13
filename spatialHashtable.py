@@ -7,10 +7,10 @@ class spatialHashtable:
 
         # cells_per_dimension
         self.cpd = 32
-        number_grid = cells_per_dim ** 3
+        # number_grid = cells_per_dim ** 3
 
         # object index
-        object_index = np.array((N, 2))
+        # object_index = np.array((N, 2))
 
         # hash table
         # hash_table = np.array((N,1))
@@ -19,7 +19,7 @@ class spatialHashtable:
         self.blist = []
 
         # pivot table
-        pivot_table = np.array((number_grid, 4))
+        # pivot_table = np.array((number_grid, 4))
 
     # adds a boid to the datastructure
     def add(self, boid):
@@ -60,19 +60,18 @@ class spatialHashtable:
         return self.getNeighborhoodForOne(boid, radius_detection), \
                self.getNeighborhoodForOne(boid, radius_collision)
 
-
     def getNeighborhoodForOne(self, boid, radius):
 
-        list = self.getNeighborhoodCells(boid, radius)
+        boidlist = self.getNeighborhoodCells(boid, radius)
 
         boids = []
 
-        for i in list:
+        for i in boidlist:
 
-            object = self.hashtable.get(i)
+            body = self.hashtable.get(i)
 
-            if object != None:
-                boids.extend(object)
+            if body is not None:
+                boids.extend(body)
 
         return boids
 
@@ -95,7 +94,6 @@ class spatialHashtable:
         x_cell_steps = int(x_plus - x_minus)
         y_cell_steps = int((y_plus - y_minus) / self.cpd)
         z_cell_steps = int((z_plus - z_minus) / self.cpd ** 2)
-
 
         # get origin
         xyz_minus = self.getCell(max(x - rad, -1), max(y - rad, -1), max(z - rad, -1))
@@ -138,19 +136,27 @@ class spatialHashtable:
 
         x_cell = x // mod_op
 
-        # randfall
         if x_cell >= self.cpd:
             x_cell = self.cpd - 1
+
+        if x_cell <= 0:
+            x_cell = 0
 
         y_cell = y // mod_op
 
         if y_cell >= self.cpd:
             y_cell = self.cpd - 1
 
+        if y_cell <= 0:
+            y_cell = 0
+
         z_cell = z // mod_op
 
         if z_cell >= self.cpd:
             z_cell = self.cpd - 1
+
+        if z_cell <= 0:
+            z_cell = 0
 
         final_cell = x_cell + y_cell * self.cpd + z_cell * self.cpd ** 2
 
