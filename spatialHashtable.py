@@ -16,6 +16,7 @@ class spatialHashtable:
         # hash_table = np.array((N,1))
 
         self.hashtable = {}
+        self.blist = []
 
         # pivot table
         pivot_table = np.array((number_grid, 4))
@@ -25,17 +26,57 @@ class spatialHashtable:
 
         index = self.getCell(boid.pos[0], boid.pos[1], boid.pos[2])
         self.add_values_in_dict(index, boid)
+        self.blist.append(boid)
+
+    def addToHashOnly(self, boid):
+
+        index = self.getCell(boid.pos[0], boid.pos[1], boid.pos[2])
+        self.add_values_in_dict(index, boid)
+
+    def step(self):
+
+        # updated every boid
+        for boid in self.blist:
+            boid.step(self.getNeighborhood)
+
+        # reset hashtable
+        self.hashtable = {}
+
+        # build new hashtable
+        for boid in self.blist:
+            self.addToHashOnly(boid)
 
     def add_values_in_dict(self, key, boid):
         ''' Append multiple values to a key in
             the given dictionary '''
 
         if key not in self.hashtable:
-            self.hashtable[key] = list()
+            self.hashtable[key] = []
 
         self.hashtable[key].append(boid)
 
-    def getNeighborhood(self, boid, radius):
+    def getNeighborhood(self, boid, radius_detection, radius_collision):
+
+        return self.getNeighborhoodForOne(boid, radius_detection), \
+               self.getNeighborhoodForOne(boid, radius_collision)
+
+
+    def getNeighborhoodForOne(self, boid, radius):
+
+        list = self.getNeighborhoodCells(boid, radius)
+
+        boids = []
+
+        for i in list:
+
+            object = self.hashtable.get(i)
+
+            if object != None:
+                boids.extend(object)
+
+        return boids
+
+    def getNeighborhoodCells(self, boid, radius):
 
         x, y, z = boid.pos[0], boid.pos[1], boid.pos[2]
 
