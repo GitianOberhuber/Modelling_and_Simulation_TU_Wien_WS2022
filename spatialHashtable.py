@@ -6,7 +6,7 @@ class spatialHashtable:
     def __init__(self, N, cells_per_dim=32):
 
         # cells_per_dimension
-        self.cpd = 32
+        self.cpd = 45
         # number_grid = cells_per_dim ** 3
 
         # object index
@@ -57,8 +57,7 @@ class spatialHashtable:
 
     def getNeighborhood(self, boid, radius_detection, radius_collision):
 
-        return self.getNeighborhoodForOne(boid, radius_detection), \
-               self.getNeighborhoodForOne(boid, radius_collision)
+        return self.getNeighborhoodForOne(boid, radius_detection), self.getNeighborhoodForOne(boid, radius_collision)
 
     def getNeighborhoodForOne(self, boid, radius):
 
@@ -68,10 +67,14 @@ class spatialHashtable:
 
         for i in boidlist:
 
-            body = self.hashtable.get(i)
+            boid_neighbors = self.hashtable.get(i)
 
-            if body is not None:
-                boids.extend(body)
+            if boid_neighbors is not None:
+
+                for x in boid_neighbors:
+
+                    if np.linalg.norm(boid.pos - x.pos) <= radius:
+                        boids.append(x)
 
         return boids
 
@@ -82,21 +85,21 @@ class spatialHashtable:
         rad = radius
 
         # get the cells:
-        x_minus = self.getCell(max(x - rad, -1), y, z)
-        x_plus = self.getCell(min(x + rad, 1), y, z)
+        x_minus = self.getCell(x - rad, y, z)
+        x_plus = self.getCell(x + rad, y, z)
 
-        y_minus = self.getCell(x, max(y - rad, -1), z)
-        y_plus = self.getCell(x, min(y + rad, 1), z)
+        y_minus = self.getCell(x, y - rad, z)
+        y_plus = self.getCell(x, y + rad, z)
 
-        z_minus = self.getCell(x, y, max(z - rad, -1))
-        z_plus = self.getCell(x, y, min(z + rad, 1))
+        z_minus = self.getCell(x, y, z - rad)
+        z_plus = self.getCell(x, y, z + rad)
 
         x_cell_steps = int(x_plus - x_minus)
         y_cell_steps = int((y_plus - y_minus) / self.cpd)
         z_cell_steps = int((z_plus - z_minus) / self.cpd ** 2)
 
         # get origin
-        xyz_minus = self.getCell(max(x - rad, -1), max(y - rad, -1), max(z - rad, -1))
+        xyz_minus = self.getCell(x - rad, y - rad, z - rad)
 
         cell_list = list()
 
@@ -107,19 +110,25 @@ class spatialHashtable:
 
             cell_list.append(current_cell)
 
-            # for the case there are no steps in y direction #and that base
+            tmp = current_cell
 
+            # add cells in z direction
             for k in range(0, z_cell_steps):
-                tmp = current_cell + self.cpd ** 2
+                tmp = tmp + self.cpd ** 2
                 cell_list.append(tmp)
 
-            for j in range(0, y_cell_steps):
-                current_cell = current_cell + self.cpd
-                cell_list.append(current_cell)
+            if (y_cell_steps != 0):
 
-                for k in range(0, z_cell_steps):
-                    current_cell = current_cell + self.cpd ** 2
+                # add cells in y direction
+                for j in range(0, y_cell_steps):
+                    current_cell = current_cell + self.cpd
                     cell_list.append(current_cell)
+
+                    current_cell_z_axis = current_cell
+                    # add cells in z direction
+                    for k in range(0, z_cell_steps):
+                        current_cell_z_axis = current_cell_z_axis + self.cpd ** 2
+                        cell_list.append(current_cell_z_axis)
 
         return cell_list
 
