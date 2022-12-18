@@ -47,7 +47,7 @@ class Boid():
                         self.vector_stayInCube() * Boid.l4
 
         if (np.linalg.norm(self.velocity) > Boid.vmax):
-            self.velocity = Boid.vmax * (self.velocity / np.abs(self.velocity))
+            self.velocity = Boid.vmax * (self.velocity / np.linalg.norm(self.velocity))
 
             # In case the velocity gets 0
             self.velocity = np.nan_to_num(self.velocity)
