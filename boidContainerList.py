@@ -21,9 +21,9 @@ class BoidContainerList:
         return res_detection, res_collision
 
     #calls step of all boids in the container
-    def step(self):
-        for boid in self.container:
-            boid.step(self.getNeighborhood)
+    def step(self, viz):
+        for nr, boid in enumerate(self.container):
+            boid.step(self.getNeighborhood, viz, nr)
 
 
 

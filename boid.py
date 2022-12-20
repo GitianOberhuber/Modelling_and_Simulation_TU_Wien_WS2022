@@ -37,7 +37,7 @@ class Boid():
         else:
             return np.negative(self.pos)
 
-    def step(self, neighborhood_function):
+    def step(self, neighborhood_function, viz, nr):
         neighbors_detection, neighbors_collision = neighborhood_function(self, Boid.do, Boid.dc)
 
         self.velocity = self.velocity * Boid.l0 + \
@@ -53,3 +53,7 @@ class Boid():
             self.velocity = np.nan_to_num(self.velocity)
 
         self.pos = self.pos + self.velocity
+        
+        # update vizualisation matrix
+        viz[0:3,nr] = self.pos
+        viz[3:6,nr] = self.velocity

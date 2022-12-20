@@ -6,14 +6,6 @@ from boid import Boid
 import time
 from spatialHashtable import spatialHashtable
 
-
-def get_vis_data(boidContainer, N):
-    pos = np.zeros((3,N))
-    vel = np.zeros((3,N))
-    for i in range(N):
-        pos[:,i] = boidContainer.blist[i].pos
-        vel[:,i] = boidContainer.blist[i].velocity
-    return pos, vel
         
 if __name__ == '__main__':
     N = 300
@@ -21,9 +13,11 @@ if __name__ == '__main__':
     table = spatialHashtable(10, 32)
     # boidContainerOctree = BoidContainerOctree()
     # Set static values of the boids like this: Boid.l1 = value (set to values from Ex. description per default)
+    # Define visualization matrix
+    viz = np.zeros((6,N))
 
     for i in range(N):
-        pos = np.random.uniform(-1, 1, 3)
+        position = np.random.uniform(-1, 1, 3)
         #velocity = np.array([0,0,0])
         velocity = np.random.uniform(-0.015,0.015,3)   # Test case
         """
@@ -33,9 +27,13 @@ if __name__ == '__main__':
         else:
             velocity = np.array([0,0,0.001])
         """
-        boid = Boid(pos, velocity)
+        boid = Boid(position, velocity)
         table.add(boid)
         #boidContainerOctree.add(boid)
+        
+        # initial update of vectorization matrix
+        viz[0:3,0] = position
+        viz[3:6,0] = velocity
     """
     # timings
     start = time.time()
@@ -51,11 +49,10 @@ if __name__ == '__main__':
     print("octree: "  + str(end - start))
     """
     
-    # Set the animation framework and starting frame
-    pos, vel = get_vis_data(table, N)
+    # Set the animation framework and starting frame    
     fig = mlab.figure(size=(1600,1600))
-    s = mlab.quiver3d(pos[0,:], pos[1,:], pos[2,:], vel[0,:], vel[1,:], vel[2,:],line_width=6.0,scale_factor = 4, scale_mode = 'vector', \
-                      colormap='plasma',mode='2darrow',figure=fig, scalars = pos[2,:])
+    s = mlab.quiver3d(viz[0,:], viz[1,:], viz[2,:], viz[3,:], viz[4,:], viz[5,:],line_width=6.0,scale_factor = 4, scale_mode = 'vector', \
+                      colormap='plasma',mode='2darrow',figure=fig, scalars = viz[2,:])
     s.glyph.color_mode = 'color_by_scalar'
     mlab.axes(figure=fig, ranges = [-1,1,-1,1,-1,1])
     delayer = 10        # Miliseconds delay between animation runs, hard lower limit is 10ms
@@ -64,11 +61,10 @@ if __name__ == '__main__':
     @mlab.animate(delay = delayer)
     def animate_loop():
         for it in range(its):
-            table.step()
+            table.step(viz)
             print("Step nr:",it+1)      # Debugging purpose
-            pos, vel = get_vis_data(table, N)
             # Reset data, avoids redrawing canvas
-            s.mlab_source.reset(x=pos[0,:], y=pos[1,:], z=pos[2,:], u=vel[0,:], v=vel[1,:], w=vel[2,:], scalars = pos[2,:])
+            s.mlab_source.reset(x=viz[0,:], y=viz[1,:], z=viz[2,:], u=viz[3,:], v=viz[4,:], w=viz[5,:], scalars = viz[2,:])
             yield
     animate_loop()
     mlab.show()

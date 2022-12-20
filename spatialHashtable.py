@@ -33,11 +33,11 @@ class spatialHashtable:
         index = self.getCell(boid.pos[0], boid.pos[1], boid.pos[2])
         self.add_values_in_dict(index, boid)
 
-    def step(self):
+    def step(self, viz):
 
         # updated every boid
-        for boid in self.blist:
-            boid.step(self.getNeighborhood)
+        for nr, boid in enumerate(self.blist):
+            boid.step(self.getNeighborhood, viz, nr)
 
         # reset hashtable
         self.hashtable = {}

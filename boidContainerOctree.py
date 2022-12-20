@@ -17,9 +17,9 @@ class BoidContainerOctree:
 
     #Rebuilds the tree after each step for now, will be updated to doing only the neccessary
     #re-structuring
-    def step(self):
-        for boid in self.blist:
-            boid.step(self.getNeighborhood)
+    def step(self, viz):
+        for nr, boid in enumerate(self.blist):
+            boid.step(self.getNeighborhood, viz, nr)
         self.container= Octree(2.1, (0.0, 0.0, 0.0), "nodes", 10)
         for boid in self.blist:
             self.container.insertNode(boid.pos, boid)
