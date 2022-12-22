@@ -4,8 +4,8 @@ import numpy as np
 class Boid():
     # static class variables can be read and set using Boid.variablename
     vmax = 0.03
-    do, dc = 0.02, 0.01
-    l0, l1, l2, l3, l4 = 0.31, 0.001, 1.2, 2, 0.01
+    do, dc = 0.1, 0.01
+    l0, l1, l2, l3, l4 = 0.31, 0.005, 1, 2, 0.01
 
     def __init__(self, pos, velocity):
 

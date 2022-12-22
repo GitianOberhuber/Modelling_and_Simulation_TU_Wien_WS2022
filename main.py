@@ -1,41 +1,93 @@
 import numpy as np
+import os
 from mayavi import mlab
+import imageio
 from boidContainerList import BoidContainerList
 from boidContainerOctree import BoidContainerOctree
 from boid import Boid
 import time
 from spatialHashtable import spatialHashtable
 
-        
+
 if __name__ == '__main__':
-    N = 300
-    #boidContainerList = BoidContainerList()
-    table = spatialHashtable(10, 32)
-    # boidContainerOctree = BoidContainerOctree()
-    # Set static values of the boids like this: Boid.l1 = value (set to values from Ex. description per default)
+    N = 1000         # nr of boids
+    save_animation = True          # if True saves animation as gif in location specified in outpath
+    outpath = os.getcwd() + '/anim.gif'   # maybe specify this manually, depends on system if it works
+    delayer = 10        # Miliseconds delay between animation runs, hard lower limit is 10ms
+    its = 200            # Iterations of the Simulation
+    boid = Boid(np.zeros(3), np.zeros(3))
+    if boid.vmax == 0:
+        raise ValueError('Maximum boid velocity can not be zero.')
+    sf = 0.08 / boid.vmax           # assures the relative size of the arrows is independant of maximum speed (set fixed value for comparison)
+    implementation = 'hashtable'    # select from 'hashtable', 'octree' or 'list'
+    
+    if (implementation == 'hashtable'):
+        struct = spatialHashtable(10, 32)
+    elif (implementation == 'octree'):
+        struct = BoidContainerOctree()
+    elif (implementation == 'list'):
+        struct = BoidContainerList()
+    else:
+        raise ValueError('Implementation type must be implemented, please check for correct spelling.')
+    
     # Define visualization matrix
     viz = np.zeros((6,N))
 
+    # initialize starting parameters
     for i in range(N):
         position = np.random.uniform(-1, 1, 3)
         #velocity = np.array([0,0,0])
         velocity = np.random.uniform(-0.015,0.015,3)   # Test case
-        """
-        # An Error occurs when running this starting configuration, coming from the vector_avoidColission function
-        if (N%2 == 0):
-            velocity = np.array([0,0.001,0])
-        else:
-            velocity = np.array([0,0,0.001])
-        """
+
         boid = Boid(position, velocity)
-        table.add(boid)
-        #boidContainerOctree.add(boid)
+        struct.add(boid)
         
-        # initial update of vectorization matrix
+        # initial update of visualization matrix
         viz[0:3,0] = position
         viz[3:6,0] = velocity
+        
+    # animate loop without saving as gif
+    @mlab.animate(delay = delayer)
+    def animate_loop():
+        for it in range(its):
+            struct.step(viz)
+            print('Step nr:',it+1)
+            # Reset data, avoids redrawing canvas
+            s.mlab_source.reset(x=viz[0,:], y=viz[1,:], z=viz[2,:], u=viz[3,:], v=viz[4,:], w=viz[5,:], scalars = viz[2,:])
+            yield
+
+    # animation loop with saving output as gif
+    @mlab.animate(delay=delayer, ui=False)
+    def animate_loop_gif(writer, s):
+        for it in range(its):
+            struct.step(viz)
+            print('Step nr:',it+1)
+            s.mlab_source.reset(x=viz[0,:], y=viz[1,:], z=viz[2,:], u=viz[3,:], v=viz[4,:], w=viz[5,:], scalars = viz[2,:])
+            image = mlab.screenshot()
+            writer.append_data(image)
+            yield
+
+
+    fig = mlab.figure(size=(1600,1600))         # make larger for higher quality
+    s = mlab.quiver3d(viz[0,:], viz[1,:], viz[2,:], viz[3,:], viz[4,:], viz[5,:],line_width=6.0,scale_factor = sf, scale_mode = 'vector', \
+                      colormap='plasma',mode='2darrow',figure=fig, scalars = viz[2,:])
+    s.glyph.color_mode = 'color_by_scalar'
+    mlab.axes(figure=fig, ranges = [-1,1,-1,1,-1,1], extent = [-1,1,-1,1,-1,1])
+    mlab.view(focalpoint = [0,0,0], distance = 8)
+
+
+    if (save_animation == True):
+        with imageio.get_writer(outpath, mode='I') as writer:
+            a = animate_loop_gif(writer, s)
+            mlab.show()
+        
+    else:
+        animate_loop()
+        mlab.show()
+        
+    
+    # Timings
     """
-    # timings
     start = time.time()
     for i in range(10):
         boidContainerList.step()
@@ -48,28 +100,6 @@ if __name__ == '__main__':
     end = time.time()
     print("octree: "  + str(end - start))
     """
-    
-    # Set the animation framework and starting frame    
-    fig = mlab.figure(size=(1600,1600))
-    s = mlab.quiver3d(viz[0,:], viz[1,:], viz[2,:], viz[3,:], viz[4,:], viz[5,:],line_width=6.0,scale_factor = 4, scale_mode = 'vector', \
-                      colormap='plasma',mode='2darrow',figure=fig, scalars = viz[2,:])
-    s.glyph.color_mode = 'color_by_scalar'
-    mlab.axes(figure=fig, ranges = [-1,1,-1,1,-1,1])
-    delayer = 10        # Miliseconds delay between animation runs, hard lower limit is 10ms
-    its = 400            # Iterations of the Simulation
-
-    @mlab.animate(delay = delayer)
-    def animate_loop():
-        for it in range(its):
-            table.step(viz)
-            print("Step nr:",it+1)      # Debugging purpose
-            # Reset data, avoids redrawing canvas
-            s.mlab_source.reset(x=viz[0,:], y=viz[1,:], z=viz[2,:], u=viz[3,:], v=viz[4,:], w=viz[5,:], scalars = viz[2,:])
-            yield
-    animate_loop()
-    mlab.show()
-
-
     
     
     
