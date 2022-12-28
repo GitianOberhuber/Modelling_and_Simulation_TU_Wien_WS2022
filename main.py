@@ -15,15 +15,17 @@ if __name__ == '__main__':
     outpath = os.getcwd() + '/anim.gif'   # maybe specify this manually, depends on system if it works
     delayer = 10        # Miliseconds delay between animation runs, hard lower limit is 10ms
     its = 200            # Iterations of the Simulation
-    boid = Boid(np.zeros(3), np.zeros(3))
+    boid = Boid(np.zeros(3), np.zeros(3),0)
     if boid.vmax == 0:
         raise ValueError('Maximum boid velocity can not be zero.')
     sf = 0.08 / boid.vmax           # assures the relative size of the arrows is independant of maximum speed (set fixed value for comparison)
-    implementation = 'hashtable'    # select from 'hashtable', 'octree' or 'list'
+    implementation = 'octree+'    # select from 'hashtable', 'octree' or 'list'
     
     if (implementation == 'hashtable'):
         struct = spatialHashtable(10, 32)
     elif (implementation == 'octree'):
+        struct = BoidContainerOctree(rebuild=True)
+    elif (implementation == 'octree+'):
         struct = BoidContainerOctree()
     elif (implementation == 'list'):
         struct = BoidContainerList()
@@ -39,13 +41,13 @@ if __name__ == '__main__':
         #velocity = np.array([0,0,0])
         velocity = np.random.uniform(-0.015,0.015,3)   # Test case
 
-        boid = Boid(position, velocity)
+        boid = Boid(position, velocity, i)
         struct.add(boid)
         
         # initial update of visualization matrix
         viz[0:3,0] = position
         viz[3:6,0] = velocity
-        
+
     # animate loop without saving as gif
     @mlab.animate(delay = delayer)
     def animate_loop():
@@ -68,6 +70,7 @@ if __name__ == '__main__':
             yield
 
 
+    """
     fig = mlab.figure(size=(1600,1600))         # make larger for higher quality
     s = mlab.quiver3d(viz[0,:], viz[1,:], viz[2,:], viz[3,:], viz[4,:], viz[5,:],line_width=6.0,scale_factor = sf, scale_mode = 'vector', \
                       colormap='plasma',mode='2darrow',figure=fig, scalars = viz[2,:])
@@ -85,22 +88,31 @@ if __name__ == '__main__':
         animate_loop()
         mlab.show()
         
-    
-    # Timings
     """
-    start = time.time()
-    for i in range(10):
-        boidContainerList.step()
-    end = time.time()
-    print("list: "  + str(end - start))
+    # Timings
+    boidContainerOctree = BoidContainerOctree(rebuild=True)
+    boidContainerOctreePlus = BoidContainerOctree()
+
+    for i in range(N):
+        position = np.random.uniform(-1, 1, 3)
+        velocity = np.random.uniform(-0.015,0.015,3)   # Test case
+        boid1 = Boid(position, velocity, i)
+        boid2 = Boid(position, velocity, i)
+        boidContainerOctree.add(boid1)
+        boidContainerOctreePlus.add(boid2)
 
     start = time.time()
     for i in range(10):
-        boidContainerOctree.step()
+        boidContainerOctree.step(viz)
     end = time.time()
     print("octree: "  + str(end - start))
-    """
-    
+
+    start = time.time()
+    for i in range(10):
+        boidContainerOctreePlus.step(viz)
+    end = time.time()
+    print("octree+: "  + str(end - start))
+   # """
     
     
 

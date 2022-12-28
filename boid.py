@@ -7,10 +7,11 @@ class Boid():
     do, dc = 0.1, 0.01
     l0, l1, l2, l3, l4 = 0.31, 0.005, 1, 2, 0.01
 
-    def __init__(self, pos, velocity):
+    def __init__(self, pos, velocity, idx):
 
         self.pos = np.array(pos)
         self.velocity = velocity
+        self.id = idx
 
     # tendency towards average point of neighbors
     def vector_avgPoint(self, neighborhood_boids):

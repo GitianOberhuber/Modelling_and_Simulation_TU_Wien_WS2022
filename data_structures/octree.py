@@ -3,7 +3,7 @@ import numpy as np
 #based on https://github.com/jcummings2/pyoctree/blob/master/octree.py and adapted for boid-simulation
 
 class OctNode(object):
-    def __init__(self, pos, size, depth, data):
+    def __init__(self, pos, size, depth, data, parent=None):
         """
         OctNode Cubes have a position and size
         position is related to, but not the same as the objects the node contains.
@@ -18,6 +18,7 @@ class OctNode(object):
         self.size = size
         self.depth = depth
 
+
         ## All OctNodes will be leaf nodes at first
         ## Then subdivided later as more objects get added
         self.isLeafNode = True
@@ -27,6 +28,9 @@ class OctNode(object):
 
         ## might as well give it some emtpy branches while we are here.
         self.branches = [None, None, None, None, None, None, None, None]
+
+        ## set parent for bottom-up-navigation
+        self.parent = parent
 
         half = size / 2
 
@@ -44,6 +48,24 @@ class OctNode(object):
             return u"position: {0}, size: {1}, depth: {2} leaf: {3}, data: {4}".format(
                 self.pos, self.size, self.depth, self.isLeafNode, data_str)
 
+    def count_children(self):
+        if self.isLeafNode:
+            return len(self.data)
+        else:
+            children_sums = [branch.count_children() for branch in self.branches if branch]
+            return sum(children_sums)
+
+    def cutNodes(self, limit):
+        if not self.isLeafNode:
+            for branch in self.branches:
+                if(not branch is None):
+                    branch.cutNodes(limit)
+            if self.count_children() < limit:
+                self.isLeafNode = True
+                data_lists = [branch.data for branch in self.branches if branch and branch.data]
+                self.data = [j for i in data_lists for j in i]
+                self.branches = [None, None, None, None, None, None, None, None]
+                
 
 class Octree(object):
     """
@@ -93,6 +115,9 @@ class Octree(object):
 
         return self.__insertNode(self.root, self.root.size, self.root, position, objData)
 
+    def cutTree(self):
+        self.root.cutNodes(self.limit)
+
     def __insertNode(self, root, size, parent, position, objData):
         """Private version of insertNode() that is called recursively"""
         if root is None:
@@ -133,7 +158,7 @@ class Octree(object):
             # we already know the size as supplied by the parent node
             # So create a new node at this position in the tree
             # print "Adding Node of size: " + str(size / 2) + " at " + str(newCenter)
-            return OctNode(newCenter, size, parent.depth + 1, [objData])
+            return OctNode(newCenter, size, parent.depth + 1, [objData], parent)
 
         #else: are we not at our position, but not at a leaf node either
         elif (not root.isLeafNode and
