@@ -55,18 +55,6 @@ class OctNode(object):
             children_sums = [branch.count_children() for branch in self.branches if branch]
             return sum(children_sums)
 
-    def cutNodes(self, limit):
-        if not self.isLeafNode:
-            for branch in self.branches:
-                if(not branch is None):
-                    branch.cutNodes(limit)
-            if self.count_children() < limit:
-                self.isLeafNode = True
-                data_lists = [branch.data for branch in self.branches if branch and branch.data]
-                self.data = [j for i in data_lists for j in i]
-                self.branches = [None, None, None, None, None, None, None, None]
-                
-
 class Octree(object):
     """
     The octree itself, which is capable of adding and searching for nodes.
@@ -83,13 +71,9 @@ class Octree(object):
         self.worldSize = worldSize
         self.limit_nodes = (max_type=="nodes")
         self.limit = max_value
+        self.num_branches = 0
 
-    @staticmethod
-    def CreateNode(position, size, objects):
-        """This creates the actual OctNode itself."""
-        return OctNode(position, size, objects)
-
-    def insertNode(self, position, objData=None):
+    def insertNode(self, position, objData=None, node=None):
         """
         Add the given object to the octree if possible
         Parameters
@@ -106,17 +90,33 @@ class Octree(object):
             The node in which the data is stored or None if outside the
             octree's boundary volume.
         """
-        if np.any(position < self.root.lower):
+        if node is None:
+            node = self.root
+        if np.any(position < node.lower):
             return None
-        if np.any(position > self.root.upper):
+        if np.any(position > node.upper):
             return None
         if objData is None:
             objData = position
 
-        return self.__insertNode(self.root, self.root.size, self.root, position, objData)
+        return self.__insertNode(node, node.size, node.parent, position, objData)
 
-    def cutTree(self):
-        self.root.cutNodes(self.limit)
+    def cutTree(self, nodes):
+        #print(self.root.count_children())
+        while len(nodes) > 0 and nodes[0] != self.root:
+            nodes.sort(key=lambda x: x.depth, reverse=True)
+            node = nodes.pop(0)
+            if not node.isLeafNode and node.count_children() < self.limit:
+                node.isLeafNode = True
+                data_lists = [branch.data for branch in node.branches if branch and branch.data]
+                node.data = [j for i in data_lists for j in i]
+                node.branches = [None, None, None, None, None, None, None, None]
+                nodes.append(node.parent)
+
+
+
+
+
 
     def __insertNode(self, root, size, parent, position, objData):
         """Private version of insertNode() that is called recursively"""

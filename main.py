@@ -19,7 +19,7 @@ if __name__ == '__main__':
     if boid.vmax == 0:
         raise ValueError('Maximum boid velocity can not be zero.')
     sf = 0.08 / boid.vmax           # assures the relative size of the arrows is independant of maximum speed (set fixed value for comparison)
-    implementation = 'octree+'    # select from 'hashtable', 'octree' or 'list'
+    implementation = 'octree'    # select from 'hashtable', 'octree' or 'list'
     
     if (implementation == 'hashtable'):
         struct = spatialHashtable(10, 32)
@@ -69,8 +69,6 @@ if __name__ == '__main__':
             writer.append_data(image)
             yield
 
-
-    """
     fig = mlab.figure(size=(1600,1600))         # make larger for higher quality
     s = mlab.quiver3d(viz[0,:], viz[1,:], viz[2,:], viz[3,:], viz[4,:], viz[5,:],line_width=6.0,scale_factor = sf, scale_mode = 'vector', \
                       colormap='plasma',mode='2darrow',figure=fig, scalars = viz[2,:])
@@ -102,17 +100,17 @@ if __name__ == '__main__':
         boidContainerOctreePlus.add(boid2)
 
     start = time.time()
-    for i in range(10):
+    for i in range(20):
         boidContainerOctree.step(viz)
     end = time.time()
     print("octree: "  + str(end - start))
 
     start = time.time()
-    for i in range(10):
+    for i in range(20):
         boidContainerOctreePlus.step(viz)
     end = time.time()
     print("octree+: "  + str(end - start))
-   # """
+   """
     
     
 

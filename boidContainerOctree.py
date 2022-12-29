@@ -1,11 +1,14 @@
 import open3d as o3d
 import numpy as np
+import time
 from data_structures.octree import Octree, OctNode
 
 
 class BoidContainerOctree:
     def __init__(self, worldSize=4.0, origin=(0.0, 0.0, 0.0), max_type="nodes", max_value=50, rebuild = False):
         self.container = Octree(worldSize, origin, max_type, max_value)
+        self.max_value=max_value
+        self.max_type=max_type
         self.blist = []
         self.worldSize = worldSize
         if rebuild:
@@ -26,12 +29,13 @@ class BoidContainerOctree:
     def __step_rebuild(self, viz):
         for nr, boid in enumerate(self.blist):
             boid.step(self.getNeighborhood, viz, nr)
-        self.container = Octree(self.worldSize, (0.0, 0.0, 0.0), "nodes", 10)
+        self.container = Octree(self.worldSize, (0.0, 0.0, 0.0), self.max_type, self.max_value)
         for boid in self.blist:
             self.container.insertNode(boid.pos, boid)
 
     def __step_update(self, viz):
         boids_to_move = []
+        nodes_of_removed = set()
 
         # check which boids are outside their original node
         for idx, node in enumerate(self.container.iterateDepthFirst()):
@@ -46,16 +50,20 @@ class BoidContainerOctree:
 
         for node, bid, boid in boids_to_move:
             node.data.remove(boid)
+            nodes_of_removed.add(node)
         #print("After removal: " + str(self.container.root.count_children()))
-
         # add boids to new node (and create more nodes if required)
         for node, bid, boid in boids_to_move:
-            self.container.insertNode(boid.pos, boid)
-
-        #print("After add: " + str(self.container.root.count_children()))
-
-        # drop children of nodes that have too few boids
-        self.container.cutTree()
+            stop = False
+            while not stop:
+                inserted = self.container.insertNode(boid.pos, boid, node.parent)
+                if inserted is None:
+                    node = node.parent
+                    if node == self.container.root:
+                        print("ALARM")
+                else:
+                    stop = True
+        self.container.cutTree(list(nodes_of_removed))
 
     # ----------------- additional methods mainly for debugging -----------------
 
