@@ -10,8 +10,8 @@ from spatialHashtable import spatialHashtable
 
 
 if __name__ == '__main__':
-    N = 1000         # nr of boids
-    save_animation = True          # if True saves animation as gif in location specified in outpath
+    N = 100         # nr of boids
+    save_animation = False          # if True saves animation as gif in location specified in outpath
     outpath = os.getcwd() + '/anim.gif'   # maybe specify this manually, depends on system if it works
     delayer = 10        # Miliseconds delay between animation runs, hard lower limit is 10ms
     its = 200            # Iterations of the Simulation
@@ -19,7 +19,7 @@ if __name__ == '__main__':
     if boid.vmax == 0:
         raise ValueError('Maximum boid velocity can not be zero.')
     sf = 0.08 / boid.vmax           # assures the relative size of the arrows is independant of maximum speed (set fixed value for comparison)
-    implementation = 'octree'    # select from 'hashtable', 'octree' or 'list'
+    implementation = 'hashtable'    # select from 'hashtable', 'octree' or 'list'
     
     if (implementation == 'hashtable'):
         struct = spatialHashtable(10, 32)
@@ -36,6 +36,7 @@ if __name__ == '__main__':
     viz = np.zeros((6,N))
 
     # initialize starting parameters
+    # np.random.seed(42)
     for i in range(N):
         position = np.random.uniform(-1, 1, 3)
         #velocity = np.array([0,0,0])
