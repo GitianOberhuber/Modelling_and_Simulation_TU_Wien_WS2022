@@ -43,7 +43,7 @@ class Boid():
 
         self.velocity = self.velocity * Boid.l0 + \
                         self.vector_avgPoint(neighbors_detection) * Boid.l1 + \
-                        self.vector_avgVelocity(neighbors_detection) * Boid.l2 + \
+                        self.vector_avgVelocity(neighbors_detection) * Boid.l2 - \
                         self.vector_avoidColission(neighbors_collision) * Boid.l3 + \
                         self.vector_stayInCube() * Boid.l4
 
