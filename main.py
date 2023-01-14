@@ -36,7 +36,7 @@ if __name__ == '__main__':
     viz = np.zeros((6,N))
 
     # initialize starting parameters
-    # np.random.seed(42)
+    np.random.seed(42)
     for i in range(N):
         position = np.random.uniform(-1, 1, 3)
         #velocity = np.array([0,0,0])
@@ -84,7 +84,7 @@ if __name__ == '__main__':
             mlab.show()
         
     else:
-        animate_loop()
+        a = animate_loop()
         mlab.show()
         
     """

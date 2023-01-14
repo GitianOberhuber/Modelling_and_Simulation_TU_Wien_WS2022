@@ -277,7 +277,13 @@ class Octree(object):
         if (resNode is None):
             print("alarm")
             resNode = Octree.__findNeighborhoodNode(node, position, parent, radius)
-        return [item for sublist in Octree.__getAllChildren(resNode) for item in sublist]
+        candidates = [item for sublist in Octree.__getAllChildren(resNode)  for item in sublist]
+        res = []
+        for candidate in candidates:
+            if (np.linalg.norm(position - candidate.pos) <= radius):
+                res.append(candidate)
+
+        return res
 
 
     @staticmethod
@@ -350,5 +356,5 @@ class Octree(object):
         c5 = center + np.array([l / 2, l / 2, -l / 2])
         c6 = center + np.array([l / 2, -l / 2, l / 2])
         c7 = center + np.array([-l / 2, l / 2, l / 2])
-        c8 = center + np.array([-l / 2, -l / 2, -l / 2])
+        c8 = center + np.array([l / 2, l / 2, l / 2])
         return c1, c2, c3, c4, c5, c6, c7, c8
