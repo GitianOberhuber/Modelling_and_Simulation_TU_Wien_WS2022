@@ -10,11 +10,11 @@ from spatialHashtable import spatialHashtable
 
 
 if __name__ == '__main__':
-    N = 100         # nr of boids
-    save_animation = False          # if True saves animation as gif in location specified in outpath
+    N = 300         # nr of boids
+    save_animation = True          # if True saves animation as gif in location specified in outpath
     outpath = os.getcwd() + '/anim.gif'   # maybe specify this manually, depends on system if it works
     delayer = 10        # Miliseconds delay between animation runs, hard lower limit is 10ms
-    its = 200            # Iterations of the Simulation
+    its = 700            # Iterations of the Simulation
     boid = Boid(np.zeros(3), np.zeros(3),0)
     if boid.vmax == 0:
         raise ValueError('Maximum boid velocity can not be zero.')
@@ -39,8 +39,8 @@ if __name__ == '__main__':
     np.random.seed(42)
     for i in range(N):
         position = np.random.uniform(-1, 1, 3)
-        #velocity = np.array([0,0,0])
-        velocity = np.random.uniform(-0.015,0.015,3)   # Test case
+        velocity = np.array([0.001,0.001,0.001])
+        #velocity = np.random.uniform(-0.015,0.015,3)   # Test case
 
         boid = Boid(position, velocity, i)
         struct.add(boid)
@@ -56,7 +56,7 @@ if __name__ == '__main__':
             struct.step(viz)
             print('Step nr:',it+1)
             # Reset data, avoids redrawing canvas
-            s.mlab_source.reset(x=viz[0,:], y=viz[1,:], z=viz[2,:], u=viz[3,:], v=viz[4,:], w=viz[5,:], scalars = viz[2,:])
+            s.mlab_source.reset(x=viz[0,:], y=viz[1,:], z=viz[2,:], u=viz[3,:], v=viz[4,:], w=viz[5,:], scalars =  viz[0,:] + viz[1,:] + viz[2,:] + 0.000001)
             yield
 
     # animation loop with saving output as gif
@@ -65,14 +65,14 @@ if __name__ == '__main__':
         for it in range(its):
             struct.step(viz)
             print('Step nr:',it+1)
-            s.mlab_source.reset(x=viz[0,:], y=viz[1,:], z=viz[2,:], u=viz[3,:], v=viz[4,:], w=viz[5,:], scalars = viz[2,:])
+            s.mlab_source.reset(x=viz[0,:], y=viz[1,:], z=viz[2,:], u=viz[3,:], v=viz[4,:], w=viz[5,:], scalars = viz[0,:] + viz[1,:] + viz[2,:] + 0.000001)
             image = mlab.screenshot()
             writer.append_data(image)
             yield
 
-    fig = mlab.figure(size=(1600,1600))         # make larger for higher quality
+    fig = mlab.figure(size=(1600,1600), bgcolor=(1,1,1), fgcolor=(0.,0.,0.))         # make larger for higher quality
     s = mlab.quiver3d(viz[0,:], viz[1,:], viz[2,:], viz[3,:], viz[4,:], viz[5,:],line_width=6.0,scale_factor = sf, scale_mode = 'vector', \
-                      colormap='plasma',mode='2darrow',figure=fig, scalars = viz[2,:])
+                      colormap='Greys',mode='2darrow',figure=fig, scalars = viz[0,:] + viz[1,:] + viz[2,:] + 0.000001)
     s.glyph.color_mode = 'color_by_scalar'
     mlab.axes(figure=fig, ranges = [-1,1,-1,1,-1,1], extent = [-1,1,-1,1,-1,1])
     mlab.view(focalpoint = [0,0,0], distance = 8)
