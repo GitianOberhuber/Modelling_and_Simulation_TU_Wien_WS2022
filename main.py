@@ -19,7 +19,7 @@ if __name__ == '__main__':
     if boid.vmax == 0:
         raise ValueError('Maximum boid velocity can not be zero.')
     sf = 0.08 / boid.vmax           # assures the relative size of the arrows is independant of maximum speed (set fixed value for comparison)
-    implementation = 'hashtable'    # select from 'hashtable', 'octree' or 'list'
+    implementation = 'octree+'    # select from 'hashtable', 'octree' or 'list'
     
     if (implementation == 'hashtable'):
         struct = spatialHashtable(10, 32)
@@ -50,6 +50,7 @@ if __name__ == '__main__':
         viz[3:6,0] = velocity
 
     # animate loop without saving as gif
+
     @mlab.animate(delay = delayer)
     def animate_loop():
         for it in range(its):
