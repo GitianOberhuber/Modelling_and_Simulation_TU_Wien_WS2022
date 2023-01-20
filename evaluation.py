@@ -1,4 +1,4 @@
-import matplotlib as plt
+import matplotlib.pyplot as plt
 import os
 from boid import Boid
 import numpy as np
@@ -21,13 +21,11 @@ def evaluateStrategies(Ns, iterations, containers_dict, seed = 42):
                                 scalars=vizu[0, :] + vizu[1, :] + vizu[2, :] + 0.000001)
             yield
         mlab.close(all=True)
-
         return
 
     if Boid.vmax == 0:
         raise ValueError('Maximum boid velocity can not be zero.')
     sf = 0.08 / Boid.vmax  # assures the relative size of the arrows is independant of maximum speed (set fixed value for comparison)
-
 
 
     noVizTimes_dict = {}
@@ -47,8 +45,6 @@ def evaluateStrategies(Ns, iterations, containers_dict, seed = 42):
             viz[0:3, 0] = position
             viz[3:6, 0] = velocity
 
-        noVizTimes_dict[N] = {}
-        vizTimes_dict[N] = {}
         for name, container in containers_dict.items():
             print("# Evaluating " + name)
             structNoVizEval = copy.deepcopy(container)
@@ -63,7 +59,9 @@ def evaluateStrategies(Ns, iterations, containers_dict, seed = 42):
                 structNoVizEval.step(None)
             t = time.time() - t1
             print("Without visualization using " + name + " took " + str(round(t, 3)) + " seconds.")
-            noVizTimes_dict[N][name] = t
+            if not name in noVizTimes_dict:
+                noVizTimes_dict[name] = {}
+            noVizTimes_dict[name][N] = t
 
             #Visualization runtime evaluation
             cur_viz = copy.deepcopy(viz)
@@ -85,11 +83,43 @@ def evaluateStrategies(Ns, iterations, containers_dict, seed = 42):
             mlab.show()
             t = time.time() - t1
             print("With visualization using " + name + " took " + str(round(t, 3)) + " seconds.")
-            noVizTimes_dict[N][name] = t
+            if not name in vizTimes_dict:
+                vizTimes_dict[name] = {}
+            vizTimes_dict[name][N] = t
     return noVizTimes_dict, vizTimes_dict
 
 if __name__ == '__main__':
-    noVizTimes_dict, vizTimes_dict = evaluateStrategies([100, 200, 300, 400, 500], 500,
-                                                        {"list": BoidContainerList(), "octree": BoidContainerOctree(),
+    #noVizTimes_dict, vizTimes_dict = evaluateStrategies([100, 300, 500, 600, 800, 1000, 1200], 500,
+    noVizTimes_dict, vizTimes_dict = evaluateStrategies([100, 300, 500, 600, 800], 50,
+                                                        {"list": BoidContainerList(), "octree": BoidContainerOctree(max_value=25),
                                                          "hashtable": spatialHashtable(10, 32)})
+
+    def plotEvaluationDicts(noviz_dict, viz_dict, figsize = (10,8), yax_label = "Total runtime [s]",
+                            xax_label = "# of boids", title="Runtime comparison for different datastructures",
+                            colOrder = ["red", "blue", "black", "orange", "green", "brown"]):
+        plt.figure(figsize=figsize)
+
+        xs,ys,names = [], [], []
+        for boidContainerName, nBoidsRuntimeDict in noviz_dict.items():
+            names.append(boidContainerName)
+            xs.append([entry[0] for entry in nBoidsRuntimeDict.items()])
+            ys.append([entry[1] for entry in nBoidsRuntimeDict.items()])
+        for i in range(len(xs)):
+            plt.plot(xs[i], ys[i], label=names[i], color=colOrder[i], linestyle  = "solid")
+        xs, ys, names = [], [], []
+        if (not viz_dict is None):
+            for boidContainerName, nBoidsRuntimeDict in viz_dict.items():
+                names.append(boidContainerName)
+                xs.append([entry[0] for entry in nBoidsRuntimeDict.items()])
+                ys.append([entry[1] for entry in nBoidsRuntimeDict.items()])
+            for i in range(len(xs)):
+                plt.plot(xs[i], ys[i], label=names[i] + " (visualization)", color=colOrder[i], linestyle = "dashed")
+
+        plt.xlabel(xax_label)
+        plt.ylabel(yax_label)
+        plt.title(title)
+        plt.legend()
+        plt.show()
+
+    plotEvaluationDicts(noVizTimes_dict, vizTimes_dict)
 
