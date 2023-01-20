@@ -2,7 +2,7 @@ from data_structures.octree import Octree, OctNode
 
 
 class BoidContainerOctree:
-    def __init__(self, worldSize=4.0, origin=(0.0, 0.0, 0.0), max_type="nodes", max_value=50, rebuild=False):
+    def __init__(self, worldSize=4.0, origin=(0.0, 0.0, 0.0), max_type="nodes", max_value=5, rebuild=False):
         self.container = Octree(worldSize, origin, max_type, max_value)
         self.max_value = max_value
         self.max_type = max_type

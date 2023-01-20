@@ -6,7 +6,7 @@ class Boid():
     #experimentation
     vmax = 0.03
     do, dc = 0.2, 0.1
-    l0, l1, l2, l3, l4 = 1, 0.001, 1, 1, 0.01
+    l0, l1, l2, l3, l4 = 1, 0.001, 1, 1, 10
 
     #from exercise description
     #vmax = 0.03
@@ -46,7 +46,10 @@ class Boid():
 
     def step(self, neighborhood_function, viz, nr):
         neighbors_detection, neighbors_collision = neighborhood_function(self, Boid.do, Boid.dc)
-
+        if len(neighbors_detection) == 0 or len(neighbors_collision)==0:
+            print("Oh no")
+            print(neighbors_detection)
+            print(neighbors_collision)
         self.velocity = self.velocity * Boid.l0 + \
                         self.vector_avgPoint(neighbors_detection) * Boid.l1 + \
                         self.vector_avgVelocity(neighbors_detection) * Boid.l2 - \

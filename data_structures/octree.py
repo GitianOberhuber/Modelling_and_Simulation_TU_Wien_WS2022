@@ -248,7 +248,6 @@ class Octree(object):
             max_r_res = min_r_res
         else:
             max_r_res = self.__findNeighborhoodNode(min_r_res, position, radius_list[1])
-
         return min_r_res, max_r_res
 
     def __findNeighborhoodNode(self, node, position, radius, count=0, branch=0):
@@ -269,46 +268,68 @@ class Octree(object):
         return res
 
     def __findNeighborhoodBoids(self, node, position, radius_list, count=0, branch=0):
+        #print("####\n")
         resNodes = self.findNeighborhoodNode(node, position, radius_list)
         resBoids = []
+        inner_dict = {}  # node: {boids_added:[]; boids_not_added:[]; }"
+
         for idx, radius in enumerate(radius_list):
             resNode = resNodes[idx]
-            if resNode is None:
-                print("alarm")
             boids = []
+            nodes_to_check = [resNode]
 
-            if resNode.isLeafNode:
-                nodes_to_check = [resNode]
-            else:
-                nodes_to_check = []
-                nodes_to_check.extend(resNode.branches)
             while len(nodes_to_check) > 0:
                 n = nodes_to_check.pop()
 
                 if n is None:
                     continue
-                sphere_corners = Octree.getCubeCorners(position, radius)
+
+                if idx == 1 and n in inner_dict:
+                    na = inner_dict[n]["boids_not_added"]
+                    boids.extend(inner_dict[n]["boids_added"])
+                    candidates = na
+                    for candidate in candidates:
+                        if np.linalg.norm(position - candidate.pos) <= radius:
+                            boids.append(candidate)
+                    continue
+
                 if Octree.cubeWithinRadius(n.pos, n.size, position, radius):
-                    boids.extend(Octree.__getAllChildren(n))
-                elif any([Octree.pointWithinCube(corner, n.pos, n.size) for corner in sphere_corners]):
+                    #print("within", str(idx), str(n.pos))
+                    all_children = Octree.__getAllChildren(n)
+                    boids.extend(all_children)
+                    if idx == 0:
+                        inner_dict[n] = {"boids_added": all_children, "boids_not_added": []}
+                elif (Octree.checkCollision(n.pos, position, n.size, radius)):
+
+                    #print("intersect", str(idx), str(n.pos))
                     if n.isLeafNode:
                         candidates = n.data
+                        boids_inside = []
+                        boids_outside = []
                         for candidate in candidates:
                             if np.linalg.norm(position - candidate.pos) <= radius:
-                                boids.append(candidate)
+                                boids_inside.append(candidate)
+                                #print("add", str(candidate), str(candidate.pos))
+                            else:
+                                boids_outside.append(candidate)
+                        boids.extend(boids_inside)
+                        if idx == 0:
+                            inner_dict[n] = {"boids_added": boids_inside, "boids_not_added": boids_outside}
                     else:
                         nodes_to_check.extend(n.branches)
+                #else:
+                    #print("No connection", str(idx), str(n.pos))
             resBoids.append(boids)
         return resBoids
 
     @staticmethod
     def __getAllChildren(node):
-        if (node.isLeafNode):
-            return [node.data]
+        if node.isLeafNode:
+            return node.data
         else:
             res = []
             for child in node.branches:
-                if (not child is None):
+                if not child is None:
                     res.extend(Octree.__getAllChildren(child))
             return res
 
@@ -320,11 +341,11 @@ class Octree(object):
         pointing in the direction we want to go
         """
         index = 0
-        if (position[0] >= root.pos[0]):
+        if position[0] >= root.pos[0]:
             index |= 4
-        if (position[1] >= root.pos[1]):
+        if position[1] >= root.pos[1]:
             index |= 2
-        if (position[2] >= root.pos[2]):
+        if position[2] >= root.pos[2]:
             index |= 1
         return index
 
@@ -349,23 +370,22 @@ class Octree(object):
     def getRoot(self):
         return self.root
 
-    # def __nodeWithinRadius__(self, boid, radius, node):
-    # for corner in self.__getCubeCorners__(boid.pos, radius):
-
     @staticmethod
     def pointWithinRadius(point, sphereCenter, radius):
-        return np.sum(np.power(point - sphereCenter, 2)) < np.power(radius, 2)
+        return np.linalg.norm(point - sphereCenter) <= radius
 
     @staticmethod
     def cubeWithinRadius(cubeCenter, size, sphereCenter, radius):
-        corners = Octree.getCubeCorners(cubeCenter, size)
-        return all([Octree.pointWithinRadius(corner, sphereCenter, radius) for corner in corners])
+        tx = cubeCenter[0] + (size if cubeCenter[0] > sphereCenter[0] else -size)
+        ty = cubeCenter[1] + (size if cubeCenter[1] > sphereCenter[1] else -size)
+        tz = cubeCenter[2] + (size if cubeCenter[2] > sphereCenter[2] else -size)
+        return Octree.pointWithinRadius((tx, ty, tz), sphereCenter, radius)
 
     @staticmethod
     def pointWithinCube(point, center, l):
-        return (point[0] <= center[0] + l / 2 and point[0] >= center[0] - l / 2) and \
-            (point[1] <= center[1] + l / 2 and point[1] >= center[1] - l / 2) and \
-            (point[2] <= center[2] + l / 2 and point[2] >= center[2] - l / 2)
+        return (center[0] + l / 2 >= point[0] >= center[0] - l / 2) and \
+            (center[1] + l / 2 >= point[1] >= center[1] - l / 2) and \
+            (center[2] + l / 2 >= point[2] >= center[2] - l / 2)
 
     @staticmethod
     def getCubeCorners(center, l):
@@ -378,3 +398,11 @@ class Octree(object):
         c7 = center + np.array([-l / 2, l / 2, l / 2])
         c8 = center + np.array([l / 2, l / 2, l / 2])
         return c1, c2, c3, c4, c5, c6, c7, c8
+
+    @staticmethod
+    def checkCollision(center_a, center_b, a_size, b_size):
+        if abs(center_a[0] - center_b[0]) < (a_size + b_size) / 2:
+            if abs(center_a[1] - center_b[1]) < (a_size + b_size) / 2:
+                if abs(center_a[2] - center_b[2]) < (a_size + b_size) / 2:
+                    return True
+        return False
