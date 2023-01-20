@@ -10,8 +10,8 @@ from spatialHashtable import spatialHashtable
 
 
 if __name__ == '__main__':
-    N = 2000         # nr of boids
-    save_animation = False          # if True saves animation as gif in location specified in outpath
+    N = 300         # nr of boids
+    save_animation = True          # if True saves animation as gif in location specified in outpath
     outpath = os.getcwd() + '/anim.gif'   # maybe specify this manually, depends on system if it works
     delayer = 10        # Miliseconds delay between animation runs, hard lower limit is 10ms
     its = 700            # Iterations of the Simulation

@@ -1,6 +1,7 @@
 import numpy as np
 
-#based on https://github.com/jcummings2/pyoctree/blob/master/octree.py and adapted for boid-simulation
+
+# based on https://github.com/jcummings2/pyoctree/blob/master/octree.py and adapted for boid-simulation
 
 class OctNode(object):
     def __init__(self, pos, size, depth, data, parent=None):
@@ -17,7 +18,6 @@ class OctNode(object):
         self.pos = pos
         self.size = size
         self.depth = depth
-
 
         ## All OctNodes will be leaf nodes at first
         ## Then subdivided later as more objects get added
@@ -41,7 +41,7 @@ class OctNode(object):
     def __str__(self):
         if (self.data == None):
             return u"position: {0}, size: {1}, depth: {2} leaf: {3}".format(
-            self.pos, self.size, self.depth, self.isLeafNode)
+                self.pos, self.size, self.depth, self.isLeafNode)
 
         else:
             data_str = u", ".join((str(x) for x in self.data))
@@ -55,11 +55,13 @@ class OctNode(object):
             children_sums = [branch.count_children() for branch in self.branches if branch]
             return sum(children_sums)
 
+
 class Octree(object):
     """
     The octree itself, which is capable of adding and searching for nodes.
     """
-    def __init__(self, worldSize , origin, max_type, max_value):
+
+    def __init__(self, worldSize, origin, max_type, max_value):
         """
         Init the world bounding root cube
         all world geometry is inside this
@@ -69,7 +71,7 @@ class Octree(object):
         """
         self.root = OctNode(origin, worldSize, 0, [])
         self.worldSize = worldSize
-        self.limit_nodes = (max_type=="nodes")
+        self.limit_nodes = (max_type == "nodes")
         self.limit = max_value
         self.num_branches = 0
 
@@ -102,7 +104,7 @@ class Octree(object):
         return self.__insertNode(node, node.size, node.parent, position, objData)
 
     def cutTree(self, nodes):
-        #print(self.root.count_children())
+        # print(self.root.count_children())
         while len(nodes) > 0 and nodes[0] != self.root:
             nodes.sort(key=lambda x: x.depth, reverse=True)
             node = nodes.pop(0)
@@ -112,11 +114,6 @@ class Octree(object):
                 node.data = [j for i in data_lists for j in i]
                 node.branches = [None, None, None, None, None, None, None, None]
                 nodes.append(node.parent)
-
-
-
-
-
 
     def __insertNode(self, root, size, parent, position, objData):
         """Private version of insertNode() that is called recursively"""
@@ -138,21 +135,21 @@ class Octree(object):
             newCenter = (0, 0, 0)
 
             if branch == 0:
-                newCenter = (pos[0] - offset, pos[1] - offset, pos[2] - offset )
+                newCenter = (pos[0] - offset, pos[1] - offset, pos[2] - offset)
             elif branch == 1:
-                newCenter = (pos[0] - offset, pos[1] - offset, pos[2] + offset )
+                newCenter = (pos[0] - offset, pos[1] - offset, pos[2] + offset)
             elif branch == 2:
-                newCenter = (pos[0] - offset, pos[1] + offset, pos[2] - offset )
+                newCenter = (pos[0] - offset, pos[1] + offset, pos[2] - offset)
             elif branch == 3:
-                newCenter = (pos[0] - offset, pos[1] + offset, pos[2] + offset )
+                newCenter = (pos[0] - offset, pos[1] + offset, pos[2] + offset)
             elif branch == 4:
-                newCenter = (pos[0] + offset, pos[1] - offset, pos[2] - offset )
+                newCenter = (pos[0] + offset, pos[1] - offset, pos[2] - offset)
             elif branch == 5:
-                newCenter = (pos[0] + offset, pos[1] - offset, pos[2] + offset )
+                newCenter = (pos[0] + offset, pos[1] - offset, pos[2] + offset)
             elif branch == 6:
-                newCenter = (pos[0] + offset, pos[1] + offset, pos[2] - offset )
+                newCenter = (pos[0] + offset, pos[1] + offset, pos[2] - offset)
             elif branch == 7:
-                newCenter = (pos[0] + offset, pos[1] + offset, pos[2] + offset )
+                newCenter = (pos[0] + offset, pos[1] + offset, pos[2] + offset)
 
             # Now we know the centre point of the new node
             # we already know the size as supplied by the parent node
@@ -160,13 +157,13 @@ class Octree(object):
             # print "Adding Node of size: " + str(size / 2) + " at " + str(newCenter)
             return OctNode(newCenter, size, parent.depth + 1, [objData], parent)
 
-        #else: are we not at our position, but not at a leaf node either
+        # else: are we not at our position, but not at a leaf node either
         elif (not root.isLeafNode and
-            (
-                (np and np.any(root.pos != position))
-                or
-                (root.pos != position)
-            )
+              (
+                      (np and np.any(root.pos != position))
+                      or
+                      (root.pos != position)
+              )
         ):
 
             # we're in an octNode still, we need to traverse further
@@ -183,13 +180,13 @@ class Octree(object):
             # otherwise this would not be a leafNode (elementary my dear watson).
             # if we add the node to this branch will we be over the limit?
             if (
-                (self.limit_nodes and len(root.data) < self.limit)
-                or
-                (not self.limit_nodes and root.depth >= self.limit)
+                    (self.limit_nodes and len(root.data) < self.limit)
+                    or
+                    (not self.limit_nodes and root.depth >= self.limit)
             ):
                 # No? then Add to the Node's list of objects and we're done
                 root.data.append(objData)
-                #return root
+                # return root
             else:
                 # Adding this object to this leaf takes us over the limit
                 # So we have to subdivide the leaf and redistribute the objects
@@ -231,8 +228,8 @@ class Octree(object):
     def __findPosition(node, position, count=0, branch=0):
         """Private version of findPosition """
         if node.isLeafNode:
-            #print("The position is", position, " data is", node.data)
-            #return node.data
+            # print("The position is", position, " data is", node.data)
+            # return node.data
             return node
         branch = Octree.__findBranch(node, position)
         child = node.branches[branch]
@@ -240,60 +237,99 @@ class Octree(object):
             return None
         return Octree.__findPosition(child, position, count + 1, branch)
 
-    def findNeighborhoodNode(self, position, radius):
-        if np.any(position < self.root.lower):
+    def findNeighborhoodNode(self, node, position, radius_list):
+        if np.any(position < node.lower):
             return None
-        if np.any(position > self.root.upper):
+        if np.any(position > node.upper):
             return None
-        return self.__findNeighborhoodNode(self.root, position, None, radius)
 
-    @staticmethod
-    def __findNeighborhoodNode(node, position, parent, radius, count=0, branch=0):
-        corners = Octree.getCubeCorners(position, radius)
-        boidRadiusFullyContained = all([Octree.pointWithinCube(corner, node.pos, node.size) for corner in corners])
-        if (boidRadiusFullyContained):
-            if node.isLeafNode:
-                #print("The position is", position, " data is", node.data)
-                #return node.data
-                return node
-            branch = Octree.__findBranch(node, position)
-            child = node.branches[branch]
-            if child is None:
-                return None
-            return Octree.__findNeighborhoodNode(child, position, node, radius, count + 1, branch)
+        min_r_res = self.__findNeighborhoodNode(node, position, radius_list[0])
+        if radius_list[0] == radius_list[1]:
+            max_r_res = min_r_res
         else:
-            return parent
+            max_r_res = self.__findNeighborhoodNode(min_r_res, position, radius_list[1])
+        return min_r_res, max_r_res
 
-    def findNeighborhoodBoids(self, position, radius):
-        if np.any(position < self.root.lower):
+    def __findNeighborhoodNode(self, node, position, radius, count=0, branch=0):
+        corners = Octree.getCubeCorners(position, radius)
+
+        boidRadiusFullyContained = all([Octree.pointWithinCube(corner, node.pos, node.size) for corner in corners])
+        if boidRadiusFullyContained:
+            return node
+        else:
+            return self.__findNeighborhoodNode(node.parent, position, radius)
+
+    def findNeighborhoodBoids(self, position, radius_list, node):
+        if np.any(position < node.lower):
             return None
-        if np.any(position > self.root.upper):
+        if np.any(position > node.upper):
             return None
-        return self.__findNeighborhoodBoids(self.root, position, None, radius)
-
-    @staticmethod
-    def __findNeighborhoodBoids(node, position, parent, radius, count=0, branch=0):
-        resNode = Octree.__findNeighborhoodNode(node, position, parent, radius)
-        if (resNode is None):
-            print("alarm")
-            resNode = Octree.__findNeighborhoodNode(node, position, parent, radius)
-        candidates = [item for sublist in Octree.__getAllChildren(resNode)  for item in sublist]
-        res = []
-        for candidate in candidates:
-            if (np.linalg.norm(position - candidate.pos) <= radius):
-                res.append(candidate)
-
+        res = self.__findNeighborhoodBoids(node, position, radius_list)
         return res
 
+    def __findNeighborhoodBoids(self, node, position, radius_list, count=0, branch=0):
+        #print("####\n")
+        resNodes = self.findNeighborhoodNode(node, position, radius_list)
+        resBoids = []
+        inner_dict = {}  # node: {boids_added:[]; boids_not_added:[]; }"
+
+        for idx, radius in enumerate(radius_list):
+            resNode = resNodes[idx]
+            boids = []
+            nodes_to_check = [resNode]
+
+            while len(nodes_to_check) > 0:
+                n = nodes_to_check.pop()
+
+                if n is None:
+                    continue
+
+                if idx == 1 and n in inner_dict:
+                    na = inner_dict[n]["boids_not_added"]
+                    boids.extend(inner_dict[n]["boids_added"])
+                    candidates = na
+                    for candidate in candidates:
+                        if np.linalg.norm(position - candidate.pos) <= radius:
+                            boids.append(candidate)
+                    continue
+
+                if Octree.cubeWithinRadius(n.pos, n.size, position, radius):
+                    #print("within", str(idx), str(n.pos))
+                    all_children = Octree.__getAllChildren(n)
+                    boids.extend(all_children)
+                    if idx == 0:
+                        inner_dict[n] = {"boids_added": all_children, "boids_not_added": []}
+                elif (Octree.checkCollision(n.pos, position, n.size, radius)):
+
+                    #print("intersect", str(idx), str(n.pos))
+                    if n.isLeafNode:
+                        candidates = n.data
+                        boids_inside = []
+                        boids_outside = []
+                        for candidate in candidates:
+                            if np.linalg.norm(position - candidate.pos) <= radius:
+                                boids_inside.append(candidate)
+                                #print("add", str(candidate), str(candidate.pos))
+                            else:
+                                boids_outside.append(candidate)
+                        boids.extend(boids_inside)
+                        if idx == 0:
+                            inner_dict[n] = {"boids_added": boids_inside, "boids_not_added": boids_outside}
+                    else:
+                        nodes_to_check.extend(n.branches)
+                #else:
+                    #print("No connection", str(idx), str(n.pos))
+            resBoids.append(boids)
+        return resBoids
 
     @staticmethod
     def __getAllChildren(node):
-        if (node.isLeafNode):
-            return [node.data]
+        if node.isLeafNode:
+            return node.data
         else:
             res = []
             for child in node.branches:
-                if (not child is None):
+                if not child is None:
                     res.extend(Octree.__getAllChildren(child))
             return res
 
@@ -305,11 +341,11 @@ class Octree(object):
         pointing in the direction we want to go
         """
         index = 0
-        if (position[0] >= root.pos[0]):
+        if position[0] >= root.pos[0]:
             index |= 4
-        if (position[1] >= root.pos[1]):
+        if position[1] >= root.pos[1]:
             index |= 2
-        if (position[2] >= root.pos[2]):
+        if position[2] >= root.pos[2]:
             index |= 1
         return index
 
@@ -331,21 +367,25 @@ class Octree(object):
             if branch.isLeafNode:
                 yield branch
 
-
     def getRoot(self):
         return self.root
-    # def __nodeWithinRadius__(self, boid, radius, node):
-    # for corner in self.__getCubeCorners__(boid.pos, radius):
 
     @staticmethod
     def pointWithinRadius(point, sphereCenter, radius):
-        return np.sqrt(point - sphereCenter) < radius ^ 2
+        return np.linalg.norm(point - sphereCenter) <= radius
+
+    @staticmethod
+    def cubeWithinRadius(cubeCenter, size, sphereCenter, radius):
+        tx = cubeCenter[0] + (size if cubeCenter[0] > sphereCenter[0] else -size)
+        ty = cubeCenter[1] + (size if cubeCenter[1] > sphereCenter[1] else -size)
+        tz = cubeCenter[2] + (size if cubeCenter[2] > sphereCenter[2] else -size)
+        return Octree.pointWithinRadius((tx, ty, tz), sphereCenter, radius)
 
     @staticmethod
     def pointWithinCube(point, center, l):
-        return (point[0] <= center[0] + l/2 and point[0] >= center[0] - l/2) and \
-               (point[1] <= center[1] + l / 2 and point[1] >= center[1] - l / 2) and \
-               (point[2] <= center[2] + l / 2 and point[2] >= center[2] - l / 2)
+        return (center[0] + l / 2 >= point[0] >= center[0] - l / 2) and \
+            (center[1] + l / 2 >= point[1] >= center[1] - l / 2) and \
+            (center[2] + l / 2 >= point[2] >= center[2] - l / 2)
 
     @staticmethod
     def getCubeCorners(center, l):
@@ -358,3 +398,11 @@ class Octree(object):
         c7 = center + np.array([-l / 2, l / 2, l / 2])
         c8 = center + np.array([l / 2, l / 2, l / 2])
         return c1, c2, c3, c4, c5, c6, c7, c8
+
+    @staticmethod
+    def checkCollision(center_a, center_b, a_size, b_size):
+        if abs(center_a[0] - center_b[0]) < (a_size + b_size) / 2:
+            if abs(center_a[1] - center_b[1]) < (a_size + b_size) / 2:
+                if abs(center_a[2] - center_b[2]) < (a_size + b_size) / 2:
+                    return True
+        return False

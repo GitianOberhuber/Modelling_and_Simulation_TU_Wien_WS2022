@@ -6,7 +6,7 @@ class Boid():
     #experimentation
     vmax = 0.03
     do, dc = 0.2, 0.1
-    l0, l1, l2, l3, l4 = 1, 0.001, 1, 1, 0.01
+    l0, l1, l2, l3, l4 = 1, 0.001, 1, 1, 10
 
     #from exercise description
     #vmax = 0.03
@@ -32,7 +32,7 @@ class Boid():
         return np.average(neighborhood_velocities, axis=0)
 
     # tendency away from (colission-radius)-neighbours
-    def vector_avoidColission(self, neighborhood_boids):
+    def vector_avoidCollision(self, neighborhood_boids):
 
         neighborhood_positions = np.array([boid.pos for boid in neighborhood_boids])
         return np.average(neighborhood_positions - self.pos, axis=0)
@@ -46,11 +46,14 @@ class Boid():
 
     def step(self, neighborhood_function, viz, nr):
         neighbors_detection, neighbors_collision = neighborhood_function(self, Boid.do, Boid.dc)
-
+        if len(neighbors_detection) == 0 or len(neighbors_collision)==0:
+            print("Oh no")
+            print(neighbors_detection)
+            print(neighbors_collision)
         self.velocity = self.velocity * Boid.l0 + \
                         self.vector_avgPoint(neighbors_detection) * Boid.l1 + \
                         self.vector_avgVelocity(neighbors_detection) * Boid.l2 - \
-                        self.vector_avoidColission(neighbors_collision) * Boid.l3 + \
+                        self.vector_avoidCollision(neighbors_collision) * Boid.l3 + \
                         self.vector_stayInCube() * Boid.l4
 
         if (np.linalg.norm(self.velocity) > Boid.vmax):
@@ -62,5 +65,6 @@ class Boid():
         self.pos = self.pos + self.velocity
         
         # update vizualisation matrix
-        viz[0:3,nr] = self.pos
-        viz[3:6,nr] = self.velocity
+        if (not viz is None):
+            viz[0:3,nr] = self.pos
+            viz[3:6,nr] = self.velocity

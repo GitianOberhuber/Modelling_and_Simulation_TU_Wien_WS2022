@@ -1,37 +1,30 @@
-
 from data_structures.octree import Octree, OctNode
 
 
 class BoidContainerOctree:
-    def __init__(self, worldSize=4.0, origin=(0.0, 0.0, 0.0), max_type="nodes", max_value=50, rebuild = False):
+    def __init__(self, worldSize=4.0, origin=(0.0, 0.0, 0.0), max_type="nodes", max_value=5, rebuild=False):
         self.container = Octree(worldSize, origin, max_type, max_value)
-        self.max_value=max_value
-        self.max_type=max_type
+        self.max_value = max_value
+        self.max_type = max_type
         self.blist = []
         self.worldSize = worldSize
-        if rebuild:
-            self.step = self.__step_rebuild
-        else:
-            self.step = self.__step_update
+        self.origin = origin
+        self.rebuild = rebuild
 
     def add(self, boid):
         self.container.insertNode(boid.pos, boid)
         self.blist.append(boid)
 
-    def getNeighborhood(self, boid_i, radius_detection, radius_collision):
-        return self.container.findNeighborhoodBoids(boid_i.pos, radius_detection), \
-            self.container.findNeighborhoodBoids(boid_i.pos, radius_collision)
+    def getNeighborhood(self, boid_i, radius_detection, radius_collision, node):
+        if radius_detection > radius_collision or radius_detection == radius_collision:
+            collision_boids, detection_boids =\
+                self.container.findNeighborhoodBoids(boid_i.pos, [radius_collision, radius_detection], node)
+        else:
+            detection_boids, collision_boids = \
+                self.container.findNeighborhoodBoids(boid_i.pos, [radius_detection, radius_collision], node)
+        return detection_boids, collision_boids
 
-    # Rebuilds the tree after each step for now, will be updated to doing only the neccessary
-    # re-structuring
-    def __step_rebuild(self, viz):
-        for nr, boid in enumerate(self.blist):
-            boid.step(self.getNeighborhood, viz, nr)
-        self.container = Octree(self.worldSize, (0.0, 0.0, 0.0), self.max_type, self.max_value)
-        for boid in self.blist:
-            self.container.insertNode(boid.pos, boid)
-
-    def __step_update(self, viz):
+    def step(self, viz):
         boids_to_move = []
         nodes_of_removed = set()
 
@@ -39,29 +32,28 @@ class BoidContainerOctree:
         for idx, node in enumerate(self.container.iterateDepthFirst()):
             if node.isLeafNode:
                 for bid, boid in enumerate(node.data):
-                    boid.step(self.getNeighborhood, viz, boid.id)
+                    boid.step(lambda a, b, c: self.getNeighborhood(a, b, c, node), viz, boid.id)
                     if not Octree.pointWithinCube(boid.pos, node.pos, node.size):
                         boids_to_move.append((node, bid, boid))
-
-        # remove boids from their old node
-        #print("Before removal: " + str(self.container.root.count_children()))
-
-        for node, bid, boid in boids_to_move:
-            node.data.remove(boid)
-            nodes_of_removed.add(node)
-        #print("After removal: " + str(self.container.root.count_children()))
-        # add boids to new node (and create more nodes if required)
-        for node, bid, boid in boids_to_move:
-            stop = False
-            while not stop:
-                inserted = self.container.insertNode(boid.pos, boid, node.parent)
-                if inserted is None:
-                    node = node.parent
-                    if node == self.container.root:
-                        print("ALARM")
-                else:
-                    stop = True
-        self.container.cutTree(list(nodes_of_removed))
+        if self.rebuild:
+            self.container = Octree(self.worldSize, self.origin, self.max_type, self.max_value)
+            for b in self.blist:
+                self.container.insertNode(b.pos, b)
+        else:
+            for node, bid, boid in boids_to_move:
+                node.data.remove(boid)
+                nodes_of_removed.add(node)
+            for node, bid, boid in boids_to_move:
+                stop = False
+                while not stop:
+                    inserted = self.container.insertNode(boid.pos, boid, node.parent)
+                    if inserted is None:
+                        node = node.parent
+                        if node == self.container.root:
+                            print("ALARM")
+                    else:
+                        stop = True
+            self.container.cutTree(list(nodes_of_removed))
 
     # ----------------- additional methods mainly for debugging -----------------
 
