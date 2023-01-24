@@ -8,6 +8,7 @@ import time
 from boidContainerList import BoidContainerList
 from boidContainerOctree import BoidContainerOctree
 from spatialHashtable import spatialHashtable
+import pickle
 
 
 def evaluateStrategies(Ns, iterations, containers_dict, seed = 42):
@@ -90,20 +91,23 @@ def evaluateStrategies(Ns, iterations, containers_dict, seed = 42):
 
 if __name__ == '__main__':
     #noVizTimes_dict, vizTimes_dict = evaluateStrategies([100, 300, 500, 600, 800, 1000, 1200], 500,
-    noVizTimes_dict, vizTimes_dict = evaluateStrategies([100, 300, 500, 600, 800], 50,
-                                                        {"list": BoidContainerList(), "octree": BoidContainerOctree(max_value=25),
-                                                         "hashtable": spatialHashtable(10, 32)})
 
-    def plotEvaluationDicts(noviz_dict, viz_dict, figsize = (10,8), yax_label = "Total runtime [s]",
+    n_its = 300
+    noVizTimes_dict, vizTimes_dict = evaluateStrategies([ 800, 1000], n_its,
+                                                        {"List": BoidContainerList(), "Octree": BoidContainerOctree(max_value=25),                                                    "Hashtable": spatialHashtable(10, 32)})
+    pickle.dump(noVizTimes_dict, open("experiment_results/1_noviz.pckl", "wb"))
+    pickle.dump(vizTimes_dict, open("experiment_results/1_viz.pckl", "wb"))
+
+    def plotEvaluationDicts(noviz_dict, viz_dict, figsize = (10,8), yax_label = "Average time per step [s]",
                             xax_label = "# of boids", title="Runtime comparison for different datastructures",
-                            colOrder = ["red", "blue", "black", "orange", "green", "brown"]):
+                            colOrder = ["red", "blue", "black", "orange", "green", "brown"], num_its = 50):
         plt.figure(figsize=figsize)
 
         xs,ys,names = [], [], []
         for boidContainerName, nBoidsRuntimeDict in noviz_dict.items():
             names.append(boidContainerName)
             xs.append([entry[0] for entry in nBoidsRuntimeDict.items()])
-            ys.append([entry[1] for entry in nBoidsRuntimeDict.items()])
+            ys.append([entry[1]/ num_its for entry in nBoidsRuntimeDict.items()] )
         for i in range(len(xs)):
             plt.plot(xs[i], ys[i], label=names[i], color=colOrder[i], linestyle  = "solid")
         xs, ys, names = [], [], []
@@ -111,7 +115,7 @@ if __name__ == '__main__':
             for boidContainerName, nBoidsRuntimeDict in viz_dict.items():
                 names.append(boidContainerName)
                 xs.append([entry[0] for entry in nBoidsRuntimeDict.items()])
-                ys.append([entry[1] for entry in nBoidsRuntimeDict.items()])
+                ys.append([entry[1]/ num_its for entry in nBoidsRuntimeDict.items()] )
             for i in range(len(xs)):
                 plt.plot(xs[i], ys[i], label=names[i] + " (visualization)", color=colOrder[i], linestyle = "dashed")
 
@@ -121,5 +125,9 @@ if __name__ == '__main__':
         plt.legend()
         plt.show()
 
-    plotEvaluationDicts(noVizTimes_dict, vizTimes_dict)
+
+    #noVizTimes_dict = pickle.load(open("experiment_results/1_noviz.pckl", "rb"))
+    #vizTimes_dict = pickle.load(open("experiment_results/1_viz.pckl", "rb"))
+
+    plotEvaluationDicts(noVizTimes_dict, vizTimes_dict, num_its=n_its)
 
