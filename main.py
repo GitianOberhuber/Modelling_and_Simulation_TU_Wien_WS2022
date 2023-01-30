@@ -6,12 +6,12 @@ from boidContainerList import BoidContainerList
 from boidContainerOctree import BoidContainerOctree
 from boid import Boid
 import time
-from spatialHashtable import spatialHashtable
+from boidContainerHashtable import spatialHashtable
 
 
 if __name__ == '__main__':
     N = 300         # nr of boids
-    save_animation = True          # if True saves animation as gif in location specified in outpath
+    save_animation = False          # if True saves animation as gif in location specified in outpath
     outpath = os.getcwd() + '/anim.gif'   # maybe specify this manually, depends on system if it works
     delayer = 10        # Miliseconds delay between animation runs, hard lower limit is 10ms
     its = 700            # Iterations of the Simulation
@@ -85,33 +85,6 @@ if __name__ == '__main__':
     else:
         a = animate_loop()
         mlab.show()
-        
-    """
-    # Timings
-    boidContainerOctree = BoidContainerOctree(rebuild=True)
-    boidContainerOctreePlus = BoidContainerOctree()
-
-    for i in range(N):
-        position = np.random.uniform(-1, 1, 3)
-        velocity = np.random.uniform(-0.015,0.015,3)   # Test case
-        boid1 = Boid(position, velocity, i)
-        boid2 = Boid(position, velocity, i)
-        boidContainerOctree.add(boid1)
-        boidContainerOctreePlus.add(boid2)
-
-    start = time.time()
-    for i in range(20):
-        boidContainerOctree.step(viz)
-    end = time.time()
-    print("octree: "  + str(end - start))
-
-    start = time.time()
-    for i in range(20):
-        boidContainerOctreePlus.step(viz)
-    end = time.time()
-    print("octree+: "  + str(end - start))
-   """
-    
     
 
     

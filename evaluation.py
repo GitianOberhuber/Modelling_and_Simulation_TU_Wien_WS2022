@@ -7,7 +7,7 @@ import copy
 import time
 from boidContainerList import BoidContainerList
 from boidContainerOctree import BoidContainerOctree
-from spatialHashtable import spatialHashtable
+from boidContainerHashtable import spatialHashtable
 import pickle
 
 
@@ -93,7 +93,7 @@ if __name__ == '__main__':
     #noVizTimes_dict, vizTimes_dict = evaluateStrategies([100, 300, 500, 600, 800, 1000, 1200], 500,
 
     n_its = 300
-    noVizTimes_dict, vizTimes_dict = evaluateStrategies([ 800, 1000], n_its,
+    noVizTimes_dict, vizTimes_dict = evaluateStrategies([100,200,400,600, 800, 1000], n_its,
                                                         {"List": BoidContainerList(), "Octree": BoidContainerOctree(max_value=25),                                                    "Hashtable": spatialHashtable(10, 32)})
     pickle.dump(noVizTimes_dict, open("experiment_results/1_noviz.pckl", "wb"))
     pickle.dump(vizTimes_dict, open("experiment_results/1_viz.pckl", "wb"))
